@@ -3,6 +3,7 @@
 ## Unreleased
 * `NEW` diagnostic: `missing-export-doc`
 <!-- Add all new changes here. They will be moved under a version at release -->
+* `NEW` diagnostic: `missing-local-doc`
 
 ## 3.16.0
 `2025-12-2`
