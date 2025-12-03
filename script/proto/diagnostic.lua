@@ -162,6 +162,7 @@ m.register {
 
 m.register {
     'no-unknown',
+    'no-unknown-operations',
 } {
     group    = 'strong',
     severity = 'Warning',
