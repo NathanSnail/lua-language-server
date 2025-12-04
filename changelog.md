@@ -4,6 +4,7 @@
 * `NEW` diagnostic: `missing-export-doc`
 * `NEW` diagnostic: `no-unknown-operations`
 * `NEW` diagnostic: `missing-local-doc`
+* `FIX` Fix a typo in `no-unknown` diagnostic message
 <!-- Add all new changes here. They will be moved under a version at release -->
 
 ## 3.16.0
