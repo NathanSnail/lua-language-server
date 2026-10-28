@@ -116,7 +116,26 @@ local function checkOperators(operators, op, value, result, uri, classGlobal, si
                     if not result then
                         result = vm.createNode()
                     end
-                    result:merge(vm.compileNode(extends))
+                    -- Resolve operator-level generics by matching `exp` against the actual `value` argument.
+                    local resolvedExtends = extends
+                    if operator.signs and #operator.signs > 0 and vm.containsGenericName(exp) then
+                        local opSign = vm.createSign()
+                        if exp.type == 'doc.type' then
+                            for _, t in ipairs(exp.types or {}) do
+                                opSign:addSign(vm.compileNode(t))
+                            end
+                        else
+                            opSign:addSign(vm.compileNode(exp))
+                        end
+                        local opResolved = opSign:resolve(opUri, {value})
+                        if opResolved and next(opResolved) then
+                            local cloned = vm.cloneObject(extends, opResolved)
+                            if cloned then
+                                resolvedExtends = cloned
+                            end
+                        end
+                    end
+                    result:merge(vm.compileNode(resolvedExtends))
                     return result
                 end
             end

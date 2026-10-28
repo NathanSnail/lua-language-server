@@ -1626,6 +1626,9 @@ local docSwitch = util.switch()
         result.op = op
         result.finish = op.finish
 
+        -- Parse optional operator-level generic parameters: add<U>
+        result.signs = parseSigns(result)
+
         if checkToken('symbol', '(', 1) then
             nextToken()
             if checkToken('symbol', ')', 1) then
@@ -1646,6 +1649,48 @@ local docSwitch = util.switch()
         if ret then
             result.extends = ret
             result.finish  = ret.finish
+        end
+
+        -- Bind operator-local generics so that doc.type.name nodes for T are converted to doc.generic.name.
+        if result.signs then
+            local operatorGenerics = {}
+            for _, sign in ipairs(result.signs) do
+                operatorGenerics[sign[1]] = sign
+            end
+            local function bindOperatorTypeNames(obj)
+                if not obj then return end
+                if obj.type == 'doc.type.name' and operatorGenerics[obj[1]] then
+                    obj.type    = 'doc.generic.name'
+                    obj.generic = operatorGenerics[obj[1]]
+                elseif obj.type == 'doc.type' and obj.types then
+                    for _, t in ipairs(obj.types) do
+                        bindOperatorTypeNames(t)
+                    end
+                elseif obj.type == 'doc.type.array' then
+                    bindOperatorTypeNames(obj.node)
+                elseif obj.type == 'doc.type.table' and obj.fields then
+                    for _, field in ipairs(obj.fields) do
+                        bindOperatorTypeNames(field.name)
+                        bindOperatorTypeNames(field.extends)
+                    end
+                elseif obj.type == 'doc.type.sign' then
+                    bindOperatorTypeNames(obj.node)
+                    if obj.signs then
+                        for _, s in ipairs(obj.signs) do
+                            bindOperatorTypeNames(s)
+                        end
+                    end
+                elseif obj.type == 'doc.type.function' then
+                    for _, arg in ipairs(obj.args) do
+                        bindOperatorTypeNames(arg.extends)
+                    end
+                    for _, rtn in ipairs(obj.returns) do
+                        bindOperatorTypeNames(rtn)
+                    end
+                end
+            end
+            bindOperatorTypeNames(result.exp)
+            bindOperatorTypeNames(result.extends)
         end
 
         return result

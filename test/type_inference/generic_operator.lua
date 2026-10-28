@@ -200,3 +200,39 @@ TESTGENERICNAMES '' [[
 ---@operator call(): integer
 local Plain
 ]]
+
+-- Generic operators on a generic class
+TEST 'Parser<[integer, string]>' [[
+---@class Parser<T>
+---@operator add<U>(Parser<U>): Parser<[T, U]>
+
+---@type Parser<integer>
+local x
+---@type Parser<string>
+local y
+local <?z?> = x + y
+]]
+
+-- Chaining of operators
+TEST 'Parser<[[integer, string], boolean]>' [[
+---@class Parser<T>
+---@operator add<U>(Parser<U>): Parser<[T, U]>
+
+---@type Parser<integer>
+local x
+---@type Parser<string>
+local y
+---@type Parser<boolean>
+local z
+local <?r?> = (x + y) + z
+]]
+
+-- Operators work on concrete classes
+TEST 'string' [[
+---@class Become
+---@operator mul<T>(T): T
+
+---@type Become
+local x
+local <?y?> = x * "hello"
+]]
