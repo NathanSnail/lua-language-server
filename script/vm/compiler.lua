@@ -1846,32 +1846,8 @@ local function bindReturnOfFunction(source, mfunc, index, args)
                                                     guide.eachSourceType(rtn, 'doc.type.name', checkGeneric)
                                                 end
                                                 if hasClassGenerics then
-                                                    local newRtn = vm.cloneObject(rtn, genericMap)
-                                                    if newRtn then
-                                                        returnNode = vm.compileNode(newRtn)
-                                                        for rnode in returnNode:eachObject() do
-                                                            if rnode.type == 'generic' then
-                                                                returnNode = rnode:resolve(guide.getUri(source), resolveArgs)
-                                                                break
-                                                            end
-                                                        end
-                                                        local sign = vm.getSign(mfunc)
-                                                        if sign and resolveArgs and #resolveArgs > 0 then
-                                                            local resolved = sign:resolve(guide.getUri(source), resolveArgs)
-                                                            if resolved and next(resolved) then
-                                                                local newReturnNode = vm.createNode()
-                                                                for rnode in returnNode:eachObject() do
-                                                                    local cloned = vm.cloneObject(rnode, resolved)
-                                                                    if cloned then
-                                                                        newReturnNode:merge(vm.compileNode(cloned))
-                                                                    else
-                                                                        newReturnNode:merge(rnode)
-                                                                    end
-                                                                end
-                                                                returnNode = newReturnNode
-                                                            end
-                                                        end
-                                                    end
+                                                    local sign = vm.getSign(mfunc)
+                                                    returnNode = vm.resolveGenericReturn(guide.getUri(source), genericMap, sign, resolveArgs, rtn)
                                                 end
                                                 break
                                             end

@@ -49,8 +49,9 @@ local function cloneObject(source, resolved)
                 vm.setNode(newName, resolvedNode, true)
                 newName._resolved = resolvedNode
             else
-                vm.setNode(newName, source._resolved, true)
-                newName._resolved = source._resolved
+                local copied = source._resolved:copy()
+                vm.setNode(newName, copied, true)
+                newName._resolved = copied
             end
         end
         return newName
@@ -306,3 +307,50 @@ end
 function vm.cloneObject(source, resolved)
     return cloneObject(source, resolved)
 end
+
+---Resolves generic return types for generic methods and generic operators
+---by combining receiver class generics and member generic signs.
+---@param uri               uri
+---@param classGenericMap?  table<string, vm.node>
+---@param sign?             vm.sign
+---@param args?             parser.object[]
+---@param returnAst         parser.object
+---@return vm.node?
+function vm.resolveGenericReturn(uri, classGenericMap, sign, args, returnAst)
+    local combinedMap = classGenericMap
+    if sign and args and #args > 0 then
+        local memberResolved = sign:resolve(uri, args)
+        if memberResolved and next(memberResolved) then
+            combinedMap = {}
+            if classGenericMap then
+                for k, v in pairs(classGenericMap) do
+                    combinedMap[k] = v
+                end
+            end
+            for k, v in pairs(memberResolved) do
+                combinedMap[k] = v
+            end
+        end
+    end
+
+    local returnNode
+    if combinedMap and next(combinedMap) then
+        local clonedAst = vm.cloneObject(returnAst, combinedMap)
+        if clonedAst then
+            returnNode = vm.compileNode(clonedAst)
+        end
+    end
+    if not returnNode then
+        returnNode = vm.compileNode(returnAst)
+    end
+
+    for rnode in returnNode:eachObject() do
+        if rnode.type == 'generic' and args then
+            returnNode = rnode:resolve(uri, args)
+            break
+        end
+    end
+
+    return returnNode
+end
+
