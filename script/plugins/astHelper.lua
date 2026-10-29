@@ -2,6 +2,17 @@ local luadoc = require 'parser.luadoc'
 local guide = require 'parser.guide'
 local _M = {}
 
+---@class parser.comment
+---@field type 'comment.short' | 'comment.cshort' | 'comment.long' | 'comment.clong'
+---@field start integer
+---@field finish integer
+---@field text string
+---@field virtual boolean
+
+---@param t string
+---@param value string
+---@param pos integer
+---@return parser.comment
 function _M.buildComment(t, value, pos)
     return {
         type    = 'comment.short',

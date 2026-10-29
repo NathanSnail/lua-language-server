@@ -5081,6 +5081,7 @@ local function initState(lua, version, options)
     ---@class parser.state
     ---@field uri uri
     ---@field lines integer[]
+    ---@field comms parser.comment[]
     local state = {
         version = version,
         lua     = lua,

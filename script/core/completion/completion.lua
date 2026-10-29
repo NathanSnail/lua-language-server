@@ -1739,6 +1739,9 @@ local function tryArray(state, position, results)
     checkEqualEnumLeft(state, position, tbl, results, true)
 end
 
+---@param state parser.state
+---@param position integer
+---@return parser.comment?
 local function getComment(state, position)
     local offset = guide.positionToOffset(state, position)
     local symbolOffset = lookBackward.findAnyOffset(state.lua, offset, true)
@@ -2354,6 +2357,10 @@ local function tryComment(state, position, results)
 end
 
 ---@async
+---@param state parser.state
+---@param position integer
+---@param triggerCharacter string
+---@param results ?[]
 local function tryCompletions(state, position, triggerCharacter, results)
     if getComment(state, position) then
         trySymbolReference(state, position, results)
@@ -2376,6 +2383,10 @@ local function tryCompletions(state, position, triggerCharacter, results)
 end
 
 ---@async
+---@param uri string
+---@param position integer
+---@param triggerCharacter string
+---@return nil
 local function completion(uri, position, triggerCharacter)
     local state = files.getLastState(uri) or files.getState(uri)
     if not state then
